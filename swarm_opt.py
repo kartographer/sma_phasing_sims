@@ -43,29 +43,32 @@ def load_swarm_data(filename):
 def sim_pid_loop(phase_data, int_length=8, kp=0.75, ki=0.40, kd=0.01):
     n_times = phase_data.shape[0]
     n_inputs = phase_data.shape[1]
-    int_window = np.zeros((int_length, n_inputs), dtype=np.float32)
-    new_epsilon = np.zeros((n_times, n_inputs), dtype=np.float32)
-    last_cal = np.array(phase_data[0], dtype=np.float32)
+    int_window = np.zeros((int_length, n_inputs))
+    int_term = np.zeros(n_inputs)
+    new_epsilon = np.zeros((n_times, n_inputs))
+    last_cal = np.array(phase_data[0])
+    last_epsilon = np.array(phase_data[0])
 
     for idx in range(n_times):
         cal_soln = (((phase_data[idx] - last_cal) + 180.0 ) % 360.0) - 180.0
         new_epsilon[idx] = cal_soln
-        #int_window = np.roll(int_window, 1, axis=0)
-        #int_window[0] = cal_soln
         pos_mark = np.mod(idx, int_length)
+        int_term += (cal_soln - int_window[pos_mark])
         int_window[pos_mark] = cal_soln
+        del_term = cal_soln - last_epsilon
 
         pid_response = (
             (kp * cal_soln)
-            + (int_window.sum(axis=0) * (ki / int_length))
-            + ((int_window[pos_mark] - int_window[pos_mark - 1]) * kd)
+            + (int_term * (ki / int_length))
+            + (del_term * kd)
         )
         last_cal += pid_response
         last_cal = ((last_cal + 180.0 ) % 360.0) - 180.0
+        last_epsilon = cal_soln
 
-    ph_eff_vals = np.abs(
+    ph_eff_vals = (np.abs(
         np.mean(np.exp(-1j*np.deg2rad(new_epsilon.reshape((n_times, 8, -1)))),axis=2)
-    )**2.0
+    )**2.0).astype(np.float32)
 
     return ph_eff_vals
 
