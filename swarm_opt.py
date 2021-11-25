@@ -3,6 +3,7 @@ import numpy as np
 import json
 import ray
 
+# Thing
 ray.init(log_to_driver=False)
 
 def load_swarm_data(filename):
