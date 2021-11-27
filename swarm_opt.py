@@ -107,7 +107,7 @@ def sim_pid_loop(phase_data, n_streams, int_length=8, kp=0.75, ki=0.40, kd=0.01)
 
         pid_response = (
             (kp * cal_soln)
-            + (int_term * (ki / int_length))
+            + (int_term * ki)
             + (del_term * kd)
         )
         last_cal += pid_response
@@ -122,12 +122,17 @@ def sim_pid_loop(phase_data, n_streams, int_length=8, kp=0.75, ki=0.40, kd=0.01)
 @ray.remote
 def get_pid_metrics(phase_data, n_streams, int_length=8, kp=0.75, ki=0.40, kd=0.01):
     ph_eff_vals, _ = sim_pid_loop(phase_data, n_streams, int_length=int_length, kp=kp, ki=ki, kd=kd)
-    metric_arr = np.zeros(5)
+    metric_arr = np.zeros(10)
     metric_arr[0] = np.mean(ph_eff_vals)
     metric_arr[1] = np.mean(ph_eff_vals**2)
-    metric_arr[2] = np.mean(ph_eff_vals > 0.875)
-    metric_arr[3] = np.mean(ph_eff_vals > 0.75)
-    metric_arr[4] = np.mean(ph_eff_vals > 0.5)
+    metric_arr[2] = np.mean(ph_eff_vals > 0.2)
+    metric_arr[3] = np.mean(ph_eff_vals > 0.3)
+    metric_arr[4] = np.mean(ph_eff_vals > 0.4)
+    metric_arr[5] = np.mean(ph_eff_vals > 0.5)
+    metric_arr[6] = np.mean(ph_eff_vals > 0.6)
+    metric_arr[7] = np.mean(ph_eff_vals > 0.7)
+    metric_arr[8] = np.mean(ph_eff_vals > 0.8)
+    metric_arr[9] = np.mean(ph_eff_vals > 0.9)
     return metric_arr
 
 parser = argparse.ArgumentParser(description='Analyze a thing')
@@ -140,8 +145,8 @@ out_file = args.output
 
 n_kp = 41
 kp_range = [0., 2.]
-n_ki = 51
-ki_range = [-10, 15]
+n_ki = 41
+ki_range = [-1., 1.]
 n_kd = 41
 kd_range = [-1., 1.]
 
@@ -168,7 +173,7 @@ for idx, kp in enumerate(np.linspace(kp_range[0], kp_range[1], num=n_kp)):
     sys.stdout.flush()
 print("complete!")
 
-results_arr = np.zeros((n_kp, n_ki, n_kd, n_int, 5), dtype=np.float32)
+results_arr = np.zeros((n_kp, n_ki, n_kd, n_int, 10), dtype=np.float32)
 print("Recording", end="")
 sys.stdout.flush()
 while pid_arr != {}:
