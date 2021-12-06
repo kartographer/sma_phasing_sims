@@ -143,14 +143,14 @@ args = parser.parse_args()
 data_file = args.dataset
 out_file = args.output 
 
-n_kp = 41
+n_kp = 81
 kp_range = [0., 2.]
-n_ki = 41
+n_ki = 81
 ki_range = [-1., 1.]
-n_kd = 41
+n_kd = 81
 kd_range = [-1., 1.]
 
-n_int = 12
+n_int = 6
 int_start = 3
 int_step = 1
 
