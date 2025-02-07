@@ -127,3 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+vlbi_cal/v1/2024/BAD/vlbi_cal.339-2024.json
