@@ -23,6 +23,7 @@ def load_swarm_data(filename):
             (len(swarm_data[idx]['inputs']) == input_count)
             and (len(swarm_data[idx]['phases']) == input_count)
             and (len(swarm_data[idx]['cal_solution'][2]) == input_count)
+            and (len(swarm_data[idx]['efficiencies']) == 8)
             for idx in range(n_data)
         ]
 
@@ -75,6 +76,14 @@ def load_swarm_data(filename):
             axis=1,
         )
 
+        efficiencies = np.concatenate(
+            (
+                np.array([data['efficiencies_lsb'] for data in swarm_data]),
+                np.array([data['efficiencies_usb'] for data in swarm_data])
+            ),
+            axis = 1,
+        )
+
 
     # Let's calculate the "true" phase -- that is, assume that the solutions are perfect, and
     # use that to figure out what the antenna phase should _actually_ have been at time of obs.
@@ -89,7 +98,7 @@ def load_swarm_data(filename):
     # Convert times from UNIX -> fractional UTC hours
     time_stamps = (np.array([data['int_time'] for data in swarm_data]) % 86400) / 3600.0
     
-    return (true_phases, n_inputs, time_stamps, phase_online)
+    return (true_phases, n_inputs, time_stamps, phase_online, efficiencies)
 
 
 ###
@@ -174,7 +183,7 @@ for file in range(len(data)):
     int_start = 8
     int_step = 3
 
-    phase_arr, n_inputs, time_vals, other_arr = load_swarm_data(data_file)
+    phase_arr, n_inputs, time_vals, other_arr, efficiencies = load_swarm_data(data_file)
     n_times = phase_arr.shape[0]
     n_streams = phase_arr.shape[1] // n_inputs
     phase_arr_id = ray.put(phase_arr)
@@ -224,26 +233,29 @@ for file in range(len(data)):
     results_sum = np.array(results_arr[:, :, :, 0, 5])
     results_sum /= np.max(results_sum)
 
-    ### Getting heat maps
-    plt.imshow(1-np.mean(results_sum>0.95,axis=0), extent=np.array([kd_range, ki_range]).flatten(), origin='lower', cmap='gray')
-    plt.title('Low PhEff Optimization')
-    plt.xlabel('k_d')
-    plt.ylabel('k_i')
-    plt.savefig(obs_year + '_dvi.png', dpi=300)
-    #plt.show()
+    # Saving results_arr of each day
+    np.save(obs_year + "_results_arr", results_arr)
+
+    # ### Getting heat maps
+    # plt.imshow(1-np.mean(results_sum>0.95,axis=0), extent=np.array([kd_range, ki_range]).flatten(), origin='lower', cmap='gray')
+    # plt.title('Low PhEff Optimization')
+    # plt.xlabel('k_d')
+    # plt.ylabel('k_i')
+    # plt.savefig(obs_year + '_dvi.png', dpi=300)
+    # #plt.show()
 
 
-    plt.imshow(1-np.mean(results_sum>0.95,axis=1), extent=np.array([kd_range, kp_range]).flatten(), origin='lower', cmap='gray')
-    plt.title('Low PhEff Optimization')
-    plt.xlabel('k_d')
-    plt.ylabel('k_p')
-    plt.savefig(obs_year + '_dvp.png', dpi=300)
-    #plt.show()
+    # plt.imshow(1-np.mean(results_sum>0.95,axis=1), extent=np.array([kd_range, kp_range]).flatten(), origin='lower', cmap='gray')
+    # plt.title('Low PhEff Optimization')
+    # plt.xlabel('k_d')
+    # plt.ylabel('k_p')
+    # plt.savefig(obs_year + '_dvp.png', dpi=300)
+    # #plt.show()
 
 
-    plt.imshow(1-np.mean(results_sum>0.95,axis=2), extent=np.array([ki_range, kp_range]).flatten(), origin='lower', cmap='gray')
-    plt.title('Low PhEff Optimization')
-    plt.xlabel('k_i')
-    plt.ylabel('k_p')
-    plt.savefig(obs_year + '_ivp.png', dpi=300)
-    #plt.show()
+    # plt.imshow(1-np.mean(results_sum>0.95,axis=2), extent=np.array([ki_range, kp_range]).flatten(), origin='lower', cmap='gray')
+    # plt.title('Low PhEff Optimization')
+    # plt.xlabel('k_i')
+    # plt.ylabel('k_p')
+    # plt.savefig(obs_year + '_ivp.png', dpi=300)
+    # #plt.show()
