@@ -235,7 +235,6 @@ for file in range(len(data)):
         print(".", end="")
         sys.stdout.flush()
     print("COMPLETE!")
-    npz_name = obs_year + '_results_arr'
     
     opt_sel = 0; opt_pos = np.where((results_arr[:,:,:,:,opt_sel]) == np.max((results_arr[:,:,:,:,opt_sel])))
     #opt_pos = np.where((np.log(results_arr[:,:,:,:,2:8]).sum(axis=4)) == np.max((np.log(results_arr[:,:,:,:,2:8]).sum(axis=4))))
