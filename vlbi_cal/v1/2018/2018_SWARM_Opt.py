@@ -243,6 +243,21 @@ for file in range(len(data)):
 
     # Saving results_arr of each day
     np.save(obs_year + "_results_arr", results_arr)
+    
+    cal_solutions = {}
+    content = {}
+
+    content['kp'] = kp_best
+    content['ki'] = ki_best
+    content['kd'] = kd_best
+
+    cal_solutions['year'] = year
+    cal_solutions['obs_num'] = obs_number
+    cal_solutions['best_cal_solutions'] = content
+
+    save_file = open(obs_year + '_cal_solutions' + '.json', 'w')
+    json.dump(cal_solutions, save_file,  indent=4)
+    save_file.close()
 
     # ### Getting heat maps
     # plt.imshow(1-np.mean(results_sum>0.95,axis=0), extent=np.array([kd_range, ki_range]).flatten(), origin='lower', cmap='gray')

@@ -150,7 +150,7 @@ def get_pid_metrics(phase_data, n_streams, int_length=8, kp=0.75, ki=0.05, kd=0.
 #         # 'vlbi_cal.320-2017.json', # inputs_lsb error after putting code back to 'normal'
 #         #'vlbi_cal.349-2017.json' ) # fileNotFoundError : no such file or directory even though in the hard drive
 
-data = glob.glob('vlbi_cal.*.json', recursive=True)
+data = glob.glob('vlbi_cal.*.json', recursive=False)
 
 ### Iterate through the data files list
 for file in range(len(data)):
@@ -222,8 +222,23 @@ for file in range(len(data)):
     results_sum = np.array(results_arr[:, :, :, 0, 5])
     results_sum /= np.max(results_sum)
 
-     # Saving results_arr of each day
+    # Saving results_arr of each day
     np.save(obs_year + "_results_arr", results_arr)
+
+    cal_solutions = {}
+    content = {}
+
+    content['kp'] = kp_best
+    content['ki'] = ki_best
+    content['kd'] = kd_best
+
+    cal_solutions['year'] = year
+    cal_solutions['obs_num'] = obs_number
+    cal_solutions['best_cal_solutions'] = content
+
+    save_file = open(obs_year + '_cal_solutions' + '.json', 'w')
+    json.dump(cal_solutions, save_file,  indent=4)
+    save_file.close()
 
     # ### Getting heat maps
     # plt.imshow(1-np.mean(results_sum>0.95,axis=0), extent=np.array([kd_range, ki_range]).flatten(), origin='lower', cmap='gray')
